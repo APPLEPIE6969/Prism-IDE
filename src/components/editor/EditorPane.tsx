@@ -4,10 +4,12 @@ import { useRef, useEffect, useCallback } from 'react';
 import Editor, { OnMount, OnChange, BeforeMount } from '@monaco-editor/react';
 import { usePrismStore } from '@/store/usePrismStore';
 import * as monaco from 'monaco-editor';
-import { PanelLeftIcon } from 'lucide-react';
+import { PanelLeftIcon, SaveIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import clsx from 'clsx';
 
 export default function EditorPane() {
-  const { activeFile, files, updateFileContent, isSidebarOpen, toggleSidebar } = usePrismStore();
+  const { activeFile, files, updateFileContent, isSidebarOpen, toggleSidebar, saveFile, unsavedFiles } = usePrismStore();
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
   const suggestionRef = useRef<string>('');
@@ -15,6 +17,7 @@ export default function EditorPane() {
   const providerRef = useRef<monaco.IDisposable | null>(null);
 
   const file = files.find((f) => f.name === activeFile);
+  const isDirty = activeFile ? unsavedFiles.includes(activeFile) : false;
 
   const triggerAutocomplete = useCallback(async (code: string) => {
     try {
@@ -79,6 +82,21 @@ export default function EditorPane() {
     });
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        if (activeFile) {
+          saveFile(activeFile);
+          toast.success('File saved');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeFile, saveFile]);
+
   // Cleanup on unmount
   useEffect(() => {
       return () => {
@@ -105,15 +123,28 @@ export default function EditorPane() {
 
   return (
     <div className="h-full w-full bg-black overflow-hidden relative flex flex-col">
-       <div className="h-9 border-b border-[#333333] flex items-center px-4 bg-[#0a0a0a] shrink-0 gap-3">
-          <button
-            onClick={toggleSidebar}
-            className="text-[#888888] hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
-            title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
-          >
-            <PanelLeftIcon className="w-4 h-4" />
-          </button>
-          <span className="text-sm text-[#888888] font-mono">{activeFile}</span>
+       <div className="h-9 border-b border-[#333333] flex items-center px-4 bg-[#0a0a0a] shrink-0 gap-3 justify-between">
+          <div className="flex items-center gap-3">
+            <button
+                onClick={toggleSidebar}
+                className="text-[#888888] hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
+                title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+            >
+                <PanelLeftIcon className="w-4 h-4" />
+            </button>
+            <span className="text-sm text-[#888888] font-mono flex items-center gap-2">
+                {activeFile}
+                {isDirty && <span className="w-2 h-2 rounded-full bg-yellow-500" title="Unsaved changes"></span>}
+            </span>
+          </div>
+
+          {activeFile && (
+             <div className="flex items-center gap-2">
+               <span className="text-xs text-[#444] font-mono hidden sm:block">
+                 {isDirty ? 'Unsaved' : 'Saved'}
+               </span>
+             </div>
+          )}
        </div>
 
        <div className="flex-1 relative">

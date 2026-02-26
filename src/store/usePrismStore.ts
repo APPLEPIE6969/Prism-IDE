@@ -16,8 +16,13 @@ interface PrismState {
   // File Explorer State
   files: File[];
   activeFile: string | null;
+  unsavedFiles: string[];
   setActiveFile: (fileName: string) => void;
   updateFileContent: (fileName: string, content: string) => void;
+  addFile: (name: string, language: string) => void;
+  deleteFile: (name: string) => void;
+  markFileDirty: (name: string) => void;
+  saveFile: (name: string) => void;
 
   // Editor State
   isSidebarOpen: boolean;
@@ -90,12 +95,41 @@ GROQ_API_KEY=gsk-xxxx
 export const usePrismStore = create<PrismState>((set) => ({
   files: DEFAULT_FILES,
   activeFile: 'main.py',
+  unsavedFiles: [],
   setActiveFile: (fileName) => set({ activeFile: fileName }),
   updateFileContent: (fileName, content) =>
     set((state) => ({
       files: state.files.map((f) =>
         f.name === fileName ? { ...f, content } : f
       ),
+      unsavedFiles: state.unsavedFiles.includes(fileName)
+        ? state.unsavedFiles
+        : [...state.unsavedFiles, fileName],
+    })),
+  addFile: (name, language) =>
+    set((state) => {
+      if (state.files.some((f) => f.name === name)) return state;
+      return {
+        files: [...state.files, { name, language, content: '' }],
+        activeFile: name,
+        unsavedFiles: [...state.unsavedFiles, name]
+      };
+    }),
+  deleteFile: (name) =>
+    set((state) => ({
+      files: state.files.filter((f) => f.name !== name),
+      activeFile: state.activeFile === name ? null : state.activeFile,
+      unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
+    })),
+  markFileDirty: (name) =>
+    set((state) => ({
+      unsavedFiles: state.unsavedFiles.includes(name)
+        ? state.unsavedFiles
+        : [...state.unsavedFiles, name],
+    })),
+  saveFile: (name) =>
+    set((state) => ({
+      unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
     })),
   isSidebarOpen: true,
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
