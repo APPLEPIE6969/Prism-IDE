@@ -5,6 +5,9 @@ import { usePrismStore } from '@/store/usePrismStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SendIcon, SparklesIcon, BotIcon, UserIcon } from 'lucide-react';
 import clsx from 'clsx';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function AIChat() {
   const { chatMessages, addMessage, isGenerating, setIsGenerating } = usePrismStore();
@@ -41,9 +44,39 @@ export default function AIChat() {
     } catch {
       // Mock response delay
       setTimeout(() => {
-        addMessage({ role: 'assistant', content: 'Mock Response: Prism backend disconnected. I am running in offline mode.' });
+        addMessage({ role: 'assistant', content: `Mock Response: Prism backend disconnected. I am running in offline mode.
+
+Here is a Python example:
+
+\`\`\`python
+def hello_world():
+    print("Hello from Prism AI")
+    return True
+\`\`\`
+` });
         setIsGenerating(false);
       }, 1500);
+    }
+  };
+
+  const MarkdownComponents = {
+    code({ node, inline, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={vscDarkPlus}
+          language={match[1]}
+          PreTag="div"
+          className="rounded-md border border-[#333333] my-2 text-sm"
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      ) : (
+        <code className={clsx("bg-white/10 rounded px-1 py-0.5 text-xs font-mono", className)} {...props}>
+          {children}
+        </code>
+      );
     }
   };
 
@@ -80,12 +113,16 @@ export default function AIChat() {
               </div>
 
               <div className={clsx(
-                "max-w-[85%] p-3 rounded-lg border",
+                "max-w-[85%] p-3 rounded-lg border overflow-hidden text-sm space-y-2",
                 msg.role === 'assistant'
                   ? "bg-[#111111] border-[#333333] text-[#ededed]"
                   : "bg-[#1a1a1a] border-[#333333] text-white"
               )}>
-                {msg.content}
+                <ReactMarkdown
+                    components={MarkdownComponents}
+                >
+                    {msg.content}
+                </ReactMarkdown>
               </div>
             </motion.div>
           ))}
