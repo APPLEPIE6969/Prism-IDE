@@ -38,10 +38,10 @@ export default function Hero() {
         className="mt-10 z-10"
       >
         <Link
-          href="/editor"
+          href="https://tiktok-kappa-steel.vercel.app/quiz/generator"
           className="group relative inline-flex items-center gap-2 px-8 py-3 bg-white text-black rounded-full font-medium transition-transform hover:scale-105 active:scale-95"
         >
-          <span>Launch Workspace</span>
+          <span>New Quiz</span>
           <ArrowRightIcon className="w-4 h-4 transition-transform group-hover:translate-x-1" />
 
           {/* Subtle Glow */}
