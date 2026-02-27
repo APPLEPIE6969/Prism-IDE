@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { usePrismStore } from '@/store/usePrismStore';
-import { FileIcon, FolderIcon, FileTextIcon, TerminalIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { FileIcon, FolderIcon, FileTextIcon, TerminalIcon, PlusIcon, Trash2Icon, RefreshCwIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { toast } from 'sonner';
 
 export default function FileExplorer() {
-  const { files, activeFile, setActiveFile, isSidebarOpen, addFile, deleteFile, unsavedFiles } = usePrismStore();
+  const { files, activeFile, setActiveFile, isSidebarOpen, addFile, deleteFile, unsavedFiles, resetWorkspace } = usePrismStore();
   const [isCreating, setIsCreating] = useState(false);
   const [newFileName, setNewFileName] = useState('');
 
@@ -47,6 +47,13 @@ export default function FileExplorer() {
       }
   };
 
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset the workspace? All unsaved changes and new files will be lost.')) {
+        resetWorkspace();
+        toast.success('Workspace reset to default');
+    }
+  };
+
   return (
     <motion.div
       initial={{ width: 250, opacity: 1 }}
@@ -62,13 +69,22 @@ export default function FileExplorer() {
             <FolderIcon className="w-4 h-4 text-white" />
             <span className="font-mono text-sm font-bold text-white tracking-tight">WORKSPACE</span>
         </div>
-        <button
-            onClick={() => setIsCreating(true)}
-            className="p-1 hover:bg-[#333333] rounded text-[#888888] hover:text-white transition-colors"
-            title="New File"
-        >
-            <PlusIcon className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+            <button
+                onClick={handleReset}
+                className="p-1 hover:bg-[#333333] rounded text-[#888888] hover:text-white transition-colors"
+                title="Reset Workspace"
+            >
+                <RefreshCwIcon className="w-4 h-4" />
+            </button>
+            <button
+                onClick={() => setIsCreating(true)}
+                className="p-1 hover:bg-[#333333] rounded text-[#888888] hover:text-white transition-colors"
+                title="New File"
+            >
+                <PlusIcon className="w-4 h-4" />
+            </button>
+        </div>
       </div>
 
       <div className="flex-1 py-2 min-w-[250px] overflow-y-auto custom-scrollbar">

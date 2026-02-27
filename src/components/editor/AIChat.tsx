@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Components } from 'react-markdown';
 
 export default function AIChat() {
   const { chatMessages, addMessage, isGenerating, setIsGenerating } = usePrismStore();
@@ -59,21 +60,23 @@ def hello_world():
     }
   };
 
-  const MarkdownComponents = {
-    code({ node, inline, className, children, ...props }: any) {
+  const MarkdownComponents: Components = {
+    code(props) {
+      const { children, className, node, ...rest } = props;
       const match = /language-(\w+)/.exec(className || '');
-      return !inline && match ? (
+      return match ? (
+        // @ts-expect-error - SyntaxHighlighter types are slightly incompatible with ReactMarkdown
         <SyntaxHighlighter
+          {...rest}
           style={vscDarkPlus}
           language={match[1]}
           PreTag="div"
           className="rounded-md border border-[#333333] my-2 text-sm"
-          {...props}
         >
           {String(children).replace(/\n$/, '')}
         </SyntaxHighlighter>
       ) : (
-        <code className={clsx("bg-white/10 rounded px-1 py-0.5 text-xs font-mono", className)} {...props}>
+        <code className={clsx("bg-white/10 rounded px-1 py-0.5 text-xs font-mono", className)} {...rest}>
           {children}
         </code>
       );

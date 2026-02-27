@@ -1,8 +1,10 @@
 'use client';
 
-import FileExplorer from '@/components/editor/FileExplorer';
-import EditorPane from '@/components/editor/EditorPane';
-import AIChat from '@/components/editor/AIChat';
+import dynamic from 'next/dynamic';
+
+const FileExplorer = dynamic(() => import('@/components/editor/FileExplorer'), { ssr: false });
+const EditorPane = dynamic(() => import('@/components/editor/EditorPane'), { ssr: false });
+const AIChat = dynamic(() => import('@/components/editor/AIChat'), { ssr: false });
 
 export default function EditorPage() {
   return (

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface ChatMessage {
   id: string;
@@ -33,6 +34,9 @@ interface PrismState {
   isGenerating: boolean;
   addMessage: (message: Omit<ChatMessage, 'id'>) => void;
   setIsGenerating: (isGenerating: boolean) => void;
+
+  // Actions
+  resetWorkspace: () => void;
 }
 
 const DEFAULT_FILES: File[] = [
@@ -92,57 +96,74 @@ GROQ_API_KEY=gsk-xxxx
   }
 ];
 
-export const usePrismStore = create<PrismState>((set) => ({
-  files: DEFAULT_FILES,
-  activeFile: 'main.py',
-  unsavedFiles: [],
-  setActiveFile: (fileName) => set({ activeFile: fileName }),
-  updateFileContent: (fileName, content) =>
-    set((state) => ({
-      files: state.files.map((f) =>
-        f.name === fileName ? { ...f, content } : f
-      ),
-      unsavedFiles: state.unsavedFiles.includes(fileName)
-        ? state.unsavedFiles
-        : [...state.unsavedFiles, fileName],
-    })),
-  addFile: (name, language) =>
-    set((state) => {
-      if (state.files.some((f) => f.name === name)) return state;
-      return {
-        files: [...state.files, { name, language, content: '' }],
-        activeFile: name,
-        unsavedFiles: [...state.unsavedFiles, name]
-      };
-    }),
-  deleteFile: (name) =>
-    set((state) => ({
-      files: state.files.filter((f) => f.name !== name),
-      activeFile: state.activeFile === name ? null : state.activeFile,
-      unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
-    })),
-  markFileDirty: (name) =>
-    set((state) => ({
-      unsavedFiles: state.unsavedFiles.includes(name)
-        ? state.unsavedFiles
-        : [...state.unsavedFiles, name],
-    })),
-  saveFile: (name) =>
-    set((state) => ({
-      unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
-    })),
-  isSidebarOpen: true,
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
-  chatMessages: [
-    { id: '1', role: 'assistant', content: 'Welcome to Prism. How can I help you code today?' }
-  ],
-  isGenerating: false,
-  addMessage: (msg) =>
-    set((state) => ({
+export const usePrismStore = create<PrismState>()(
+  persist(
+    (set) => ({
+      files: DEFAULT_FILES,
+      activeFile: 'main.py',
+      unsavedFiles: [],
+      setActiveFile: (fileName) => set({ activeFile: fileName }),
+      updateFileContent: (fileName, content) =>
+        set((state) => ({
+          files: state.files.map((f) =>
+            f.name === fileName ? { ...f, content } : f
+          ),
+          unsavedFiles: state.unsavedFiles.includes(fileName)
+            ? state.unsavedFiles
+            : [...state.unsavedFiles, fileName],
+        })),
+      addFile: (name, language) =>
+        set((state) => {
+          if (state.files.some((f) => f.name === name)) return state;
+          return {
+            files: [...state.files, { name, language, content: '' }],
+            activeFile: name,
+            unsavedFiles: [...state.unsavedFiles, name]
+          };
+        }),
+      deleteFile: (name) =>
+        set((state) => ({
+          files: state.files.filter((f) => f.name !== name),
+          activeFile: state.activeFile === name ? null : state.activeFile,
+          unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
+        })),
+      markFileDirty: (name) =>
+        set((state) => ({
+          unsavedFiles: state.unsavedFiles.includes(name)
+            ? state.unsavedFiles
+            : [...state.unsavedFiles, name],
+        })),
+      saveFile: (name) =>
+        set((state) => ({
+          unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
+        })),
+      isSidebarOpen: true,
+      toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       chatMessages: [
-        ...state.chatMessages,
-        { ...msg, id: Math.random().toString(36).substring(7) },
+        { id: '1', role: 'assistant', content: 'Welcome to Prism. How can I help you code today?' }
       ],
-    })),
-  setIsGenerating: (isGenerating) => set({ isGenerating }),
-}));
+      isGenerating: false,
+      addMessage: (msg) =>
+        set((state) => ({
+          chatMessages: [
+            ...state.chatMessages,
+            { ...msg, id: Math.random().toString(36).substring(7) },
+          ],
+        })),
+      setIsGenerating: (isGenerating) => set({ isGenerating }),
+      resetWorkspace: () =>
+        set({
+          files: DEFAULT_FILES,
+          activeFile: 'main.py',
+          unsavedFiles: [],
+          chatMessages: [
+            { id: '1', role: 'assistant', content: 'Welcome to Prism. How can I help you code today?' }
+          ],
+          isGenerating: false,
+        }),
+    }),
+    {
+      name: 'prism-storage',
+    }
+  )
+);
