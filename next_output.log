@@ -1,0 +1,13 @@
+
+> prism-frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 1931ms
+○ Compiling /editor ...
+ GET /editor 200 in 6.4s (compile: 6.0s, render: 404ms)
+ GET /editor 200 in 107ms (compile: 7ms, render: 100ms)
