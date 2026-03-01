@@ -21,7 +21,8 @@ export default function EditorPane() {
 
   const triggerAutocomplete = useCallback(async (code: string) => {
     try {
-      const response = await fetch('http://localhost:8000/autocomplete', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/autocomplete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
