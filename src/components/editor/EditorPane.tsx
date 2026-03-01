@@ -6,7 +6,6 @@ import { usePrismStore } from '@/store/usePrismStore';
 import * as monaco from 'monaco-editor';
 import { PanelLeftIcon, SaveIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import clsx from 'clsx';
 
 export default function EditorPane() {
   const { activeFile, files, updateFileContent, isSidebarOpen, toggleSidebar, saveFile, unsavedFiles } = usePrismStore();
