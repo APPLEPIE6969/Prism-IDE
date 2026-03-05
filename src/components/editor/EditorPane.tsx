@@ -12,6 +12,7 @@ export default function EditorPane() {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
   const suggestionRef = useRef<string>('');
+  const autocompleteCacheRef = useRef<Map<string, string>>(new Map());
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const providerRef = useRef<monaco.IDisposable | null>(null);
 
@@ -19,6 +20,15 @@ export default function EditorPane() {
   const isDirty = activeFile ? unsavedFiles.includes(activeFile) : false;
 
   const triggerAutocomplete = useCallback(async (code: string) => {
+    if (!code.trim()) return;
+
+    // Check cache
+    if (autocompleteCacheRef.current.has(code)) {
+      suggestionRef.current = autocompleteCacheRef.current.get(code)!;
+      editorRef.current?.trigger('keyboard', 'editor.action.inlineSuggest.trigger', {});
+      return;
+    }
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/autocomplete`, {
@@ -30,7 +40,18 @@ export default function EditorPane() {
       if (!response.ok) throw new Error('Backend disconnected');
 
       const data = await response.json();
-      suggestionRef.current = data.suggestion;
+      const suggestion = data.suggestion;
+
+      // Cache the result (simple LRU by Map insertion order)
+      autocompleteCacheRef.current.set(code, suggestion);
+      if (autocompleteCacheRef.current.size > 50) {
+        const firstKey = autocompleteCacheRef.current.keys().next().value;
+        if (firstKey !== undefined) {
+          autocompleteCacheRef.current.delete(firstKey);
+        }
+      }
+
+      suggestionRef.current = suggestion;
       editorRef.current?.trigger('keyboard', 'editor.action.inlineSuggest.trigger', {});
 
     } catch {
