@@ -87,6 +87,17 @@ describe('usePrismStore', () => {
     expect(newState.unsavedFiles).toContain(fileName);
   });
 
+  it('should save a file and remove from unsavedFiles', () => {
+    const store = usePrismStore.getState();
+    const fileName = 'main.py';
+
+    store.markFileDirty(fileName);
+    expect(usePrismStore.getState().unsavedFiles).toContain(fileName);
+
+    store.saveFile(fileName);
+    expect(usePrismStore.getState().unsavedFiles).not.toContain(fileName);
+  });
+
   it('should reset workspace', () => {
     const store = usePrismStore.getState();
     store.addFile('test_reset.txt', 'plaintext');
