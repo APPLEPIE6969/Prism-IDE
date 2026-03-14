@@ -119,7 +119,7 @@ export default function FileExplorer() {
             {getIcon(file.name)}
             <span className="truncate flex-1 text-left">{file.name}</span>
 
-            {unsavedFiles.includes(file.name) && (
+            {unsavedFiles.has(file.name) && (
                 <div className="w-2 h-2 rounded-full bg-yellow-500 shrink-0" title="Unsaved changes" />
             )}
 
