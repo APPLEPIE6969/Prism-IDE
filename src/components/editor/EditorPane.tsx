@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import Editor, { OnMount, OnChange, BeforeMount } from '@monaco-editor/react';
 import { usePrismStore } from '@/store/usePrismStore';
+import { API_BASE_URL } from '@/config/api';
 import * as monaco from 'monaco-editor';
 import { PanelLeftIcon, SaveIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -30,8 +31,7 @@ export default function EditorPane() {
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/autocomplete`, {
+      const response = await fetch(`${API_BASE_URL}/autocomplete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),

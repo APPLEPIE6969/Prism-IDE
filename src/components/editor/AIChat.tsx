@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { usePrismStore } from '@/store/usePrismStore';
+import { API_BASE_URL } from '@/config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SendIcon, SparklesIcon, BotIcon, UserIcon } from 'lucide-react';
 import clsx from 'clsx';
@@ -31,8 +32,7 @@ export default function AIChat() {
     setIsGenerating(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/chat`, {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg }),
