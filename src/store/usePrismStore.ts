@@ -90,8 +90,8 @@ pydantic
   {
     name: '.env',
     language: 'plaintext',
-    content: `OPENAI_API_KEY=sk-xxxx
-GROQ_API_KEY=gsk-xxxx
+    content: `OPENAI_API_KEY=your_openai_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 `
   }
 ];
