@@ -4,7 +4,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import Editor, { OnMount, OnChange, BeforeMount } from '@monaco-editor/react';
 import { usePrismStore } from '@/store/usePrismStore';
 import * as monaco from 'monaco-editor';
-import { PanelLeftIcon, SaveIcon } from 'lucide-react';
+import { PanelLeftIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function EditorPane() {
