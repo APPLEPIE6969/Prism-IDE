@@ -17,7 +17,7 @@ interface PrismState {
   // File Explorer State
   files: File[];
   activeFile: string | null;
-  unsavedFiles: string[];
+  unsavedFiles: Set<string>;
   setActiveFile: (fileName: string) => void;
   updateFileContent: (fileName: string, content: string) => void;
   addFile: (name: string, language: string) => void;
@@ -101,16 +101,16 @@ export const usePrismStore = create<PrismState>()(
     (set) => ({
       files: DEFAULT_FILES,
       activeFile: 'main.py',
-      unsavedFiles: [],
+      unsavedFiles: new Set<string>(),
       setActiveFile: (fileName) => set({ activeFile: fileName }),
       updateFileContent: (fileName, content) =>
         set((state) => ({
           files: state.files.map((f) =>
             f.name === fileName ? { ...f, content } : f
           ),
-          unsavedFiles: state.unsavedFiles.includes(fileName)
+          unsavedFiles: state.unsavedFiles.has(fileName)
             ? state.unsavedFiles
-            : [...state.unsavedFiles, fileName],
+            : new Set(state.unsavedFiles).add(fileName),
         })),
       addFile: (name, language) =>
         set((state) => {
@@ -118,25 +118,33 @@ export const usePrismStore = create<PrismState>()(
           return {
             files: [...state.files, { name, language, content: '' }],
             activeFile: name,
-            unsavedFiles: [...state.unsavedFiles, name]
+            unsavedFiles: new Set(state.unsavedFiles).add(name)
           };
         }),
       deleteFile: (name) =>
-        set((state) => ({
-          files: state.files.filter((f) => f.name !== name),
-          activeFile: state.activeFile === name ? null : state.activeFile,
-          unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
-        })),
+        set((state) => {
+          const newUnsavedFiles = new Set(state.unsavedFiles);
+          newUnsavedFiles.delete(name);
+          return {
+            files: state.files.filter((f) => f.name !== name),
+            activeFile: state.activeFile === name ? null : state.activeFile,
+            unsavedFiles: newUnsavedFiles,
+          };
+        }),
       markFileDirty: (name) =>
         set((state) => ({
-          unsavedFiles: state.unsavedFiles.includes(name)
+          unsavedFiles: state.unsavedFiles.has(name)
             ? state.unsavedFiles
-            : [...state.unsavedFiles, name],
+            : new Set(state.unsavedFiles).add(name),
         })),
       saveFile: (name) =>
-        set((state) => ({
-          unsavedFiles: state.unsavedFiles.filter((f) => f !== name),
-        })),
+        set((state) => {
+          const newUnsavedFiles = new Set(state.unsavedFiles);
+          newUnsavedFiles.delete(name);
+          return {
+            unsavedFiles: newUnsavedFiles,
+          };
+        }),
       isSidebarOpen: true,
       toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       chatMessages: [
@@ -155,7 +163,7 @@ export const usePrismStore = create<PrismState>()(
         set({
           files: DEFAULT_FILES,
           activeFile: 'main.py',
-          unsavedFiles: [],
+          unsavedFiles: new Set<string>(),
           chatMessages: [
             { id: '1', role: 'assistant', content: 'Welcome to Prism. How can I help you code today?' }
           ],
@@ -164,6 +172,15 @@ export const usePrismStore = create<PrismState>()(
     }),
     {
       name: 'prism-storage',
+      partialize: (state) => ({
+        ...state,
+        unsavedFiles: Array.from(state.unsavedFiles),
+      } as any),
+      onRehydrateStorage: () => (state) => {
+        if (state && Array.isArray(state.unsavedFiles)) {
+          state.unsavedFiles = new Set(state.unsavedFiles);
+        }
+      },
     }
   )
 );

@@ -17,7 +17,7 @@ export default function EditorPane() {
   const providerRef = useRef<monaco.IDisposable | null>(null);
 
   const file = files.find((f) => f.name === activeFile);
-  const isDirty = activeFile ? unsavedFiles.includes(activeFile) : false;
+  const isDirty = activeFile ? unsavedFiles.has(activeFile) : false;
 
   const triggerAutocomplete = useCallback(async (code: string) => {
     if (!code.trim()) return;

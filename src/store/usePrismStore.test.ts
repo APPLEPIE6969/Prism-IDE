@@ -37,7 +37,7 @@ describe('usePrismStore', () => {
     const state = usePrismStore.getState();
     expect(state.files.length).toBeGreaterThan(0);
     expect(state.activeFile).toBe('main.py');
-    expect(state.unsavedFiles).toEqual([]);
+    expect(state.unsavedFiles.size).toBe(0);
   });
 
   it('should add a file', () => {
@@ -50,7 +50,7 @@ describe('usePrismStore', () => {
     expect(newState.files.length).toBe(initialCount + 1);
     expect(newState.files.some(f => f.name === 'test.ts')).toBe(true);
     expect(newState.activeFile).toBe('test.ts');
-    expect(newState.unsavedFiles).toContain('test.ts');
+    expect(newState.unsavedFiles.has('test.ts')).toBe(true);
   });
 
   it('should not add a file if it already exists', () => {
@@ -84,7 +84,7 @@ describe('usePrismStore', () => {
 
     const file = newState.files.find(f => f.name === fileName);
     expect(file?.content).toBe(newContent);
-    expect(newState.unsavedFiles).toContain(fileName);
+    expect(newState.unsavedFiles.has(fileName)).toBe(true);
   });
 
   it('should save a file and remove from unsavedFiles', () => {
@@ -92,10 +92,10 @@ describe('usePrismStore', () => {
     const fileName = 'main.py';
 
     store.markFileDirty(fileName);
-    expect(usePrismStore.getState().unsavedFiles).toContain(fileName);
+    expect(usePrismStore.getState().unsavedFiles.has(fileName)).toBe(true);
 
     store.saveFile(fileName);
-    expect(usePrismStore.getState().unsavedFiles).not.toContain(fileName);
+    expect(usePrismStore.getState().unsavedFiles.has(fileName)).toBe(false);
   });
 
   it('should reset workspace', () => {
@@ -105,13 +105,13 @@ describe('usePrismStore', () => {
 
     let state = usePrismStore.getState();
     expect(state.files.some(f => f.name === 'test_reset.txt')).toBe(true);
-    expect(state.unsavedFiles.length).toBeGreaterThan(0);
+    expect(state.unsavedFiles.size).toBeGreaterThan(0);
 
     state.resetWorkspace();
     state = usePrismStore.getState();
 
     expect(state.files.some(f => f.name === 'test_reset.txt')).toBe(false);
-    expect(state.unsavedFiles).toEqual([]);
+    expect(state.unsavedFiles.size).toBe(0);
     expect(state.activeFile).toBe('main.py');
   });
 });
